@@ -646,38 +646,94 @@ const THRESHOLD_MIN_TIER = [0, 2, 3, 4, 6];
    PALETTE LIBRARY
 ═══════════════════════════════════════════════════════ */
 const PALETTES = [
-  { name:"Obsidian",    mood:"dark minimal",    tags:["dark","minimal"],         bg:"#0d0d0d", road:"#3a3a3a", water:"#1a2a3a" },
-  { name:"Charcoal",    mood:"dark warm",       tags:["dark","warm"],            bg:"#1a1410", road:"#5a4a3a", water:"#2a3040" },
-  { name:"Midnight",    mood:"dark cool blue",  tags:["dark","cool","blue"],     bg:"#060d1f", road:"#c0d8ff", water:"#0a1e3a" },
-  { name:"Slate",       mood:"dark neutral",    tags:["dark","neutral"],         bg:"#111318", road:"#4a5060", water:"#1e2840" },
-  { name:"Noir",        mood:"high contrast",   tags:["dark","contrast"],        bg:"#000000", road:"#ffffff", water:"#222222" },
-  { name:"Deep Sea",    mood:"dark ocean",      tags:["dark","blue","ocean"],    bg:"#020e1c", road:"#1a4a6a", water:"#0a2a4a" },
-  { name:"Void",        mood:"ultra dark",      tags:["dark","minimal"],         bg:"#050505", road:"#282828", water:"#101820" },
-  { name:"Parchment",   mood:"light warm",      tags:["light","warm","paper"],   bg:"#f5f0e8", road:"#8a7a6a", water:"#a0b8c8" },
-  { name:"Blueprint",   mood:"light technical", tags:["light","blue"],           bg:"#e8f0f8", road:"#3060a0", water:"#6090c0" },
-  { name:"Ghost",       mood:"light minimal",   tags:["light","minimal"],        bg:"#f8f8f8", road:"#cccccc", water:"#b0c8d8" },
-  { name:"Cream",       mood:"light neutral",   tags:["light","warm","neutral"], bg:"#faf6f0", road:"#c0a880", water:"#90b0c0" },
-  { name:"Neon City",   mood:"neon vibrant",    tags:["neon","vibrant","dark"],  bg:"#0a0010", road:"#ff00ff", water:"#00ffff" },
-  { name:"Cyberpunk",   mood:"neon yellow",     tags:["neon","yellow","dark"],   bg:"#0d0d00", road:"#ffff00", water:"#00ccff" },
-  { name:"Synthwave",   mood:"retro neon pink", tags:["neon","pink","retro"],    bg:"#0d0020", road:"#ff2080", water:"#8000ff" },
-  { name:"Electric",    mood:"neon blue",       tags:["neon","blue","vibrant"],  bg:"#000510", road:"#00aaff", water:"#0044aa" },
-  { name:"Acid",        mood:"neon green",      tags:["neon","green","dark"],    bg:"#000a00", road:"#00ff44", water:"#004422" },
-  { name:"Terrain",     mood:"earthy natural",  tags:["earth","natural","warm"], bg:"#2a2010", road:"#a08040", water:"#406080" },
-  { name:"Forest",      mood:"green natural",   tags:["earth","green"],          bg:"#0a1a0a", road:"#4a7a3a", water:"#2a5a4a" },
-  { name:"Desert",      mood:"warm sandy",      tags:["earth","warm","sandy"],   bg:"#2a1a08", road:"#c8a060", water:"#608090" },
-  { name:"Silver",      mood:"mono cool",       tags:["mono","cool","grey"],     bg:"#1a1a1e", road:"#8888aa", water:"#3a3a5a" },
-  { name:"Sepia",       mood:"mono warm vintage",tags:["mono","warm"],           bg:"#1a1208", road:"#8a7050", water:"#3a5060" },
-  { name:"Graphite",    mood:"mono dark",       tags:["mono","dark"],            bg:"#0f0f0f", road:"#484848", water:"#1e2830" },
-  { name:"Rose",        mood:"pastel pink",     tags:["pastel","pink","soft"],   bg:"#fff0f4", road:"#e090a0", water:"#90b8d0" },
-  { name:"Lavender",    mood:"pastel purple",   tags:["pastel","purple","soft"], bg:"#f4f0ff", road:"#a080c0", water:"#80a8c8" },
-  { name:"Mint",        mood:"pastel green",    tags:["pastel","green","soft"],  bg:"#f0fff8", road:"#70b890", water:"#70a8c0" },
-  { name:"Infrared",    mood:"thermal red",     tags:["special","red","dark"],   bg:"#0a0000", road:"#ff4400", water:"#440000" },
-  { name:"Matrix",      mood:"green terminal",  tags:["special","green","dark"], bg:"#000800", road:"#00cc00", water:"#003300" },
-  { name:"Arctic",      mood:"cold ice light",  tags:["cool","blue","minimal"],  bg:"#e8f4ff", road:"#6090b0", water:"#a0c8e0" },
-  { name:"Autumn",      mood:"warm seasonal",   tags:["earth","warm"],           bg:"#1a0c00", road:"#c06020", water:"#204060" },
-  { name:"Savanna",     mood:"warm ochre",      tags:["earth","warm","ochre"],   bg:"#1e1608", road:"#b08040", water:"#406070" },
+  // --- Dark ---
+  { name:"Obsidian",      mood:"dark minimal",        tags:["dark","minimal"],              bg:"#0d0d0d", road:"#3a3a3a", water:"#1a2a3a" },
+  { name:"Charcoal",      mood:"dark warm",            tags:["dark","warm"],                 bg:"#1a1410", road:"#5a4a3a", water:"#2a3040" },
+  { name:"Midnight",      mood:"dark cool blue",       tags:["dark","cool","blue"],          bg:"#060d1f", road:"#c0d8ff", water:"#0a1e3a" },
+  { name:"Slate",         mood:"dark neutral",         tags:["dark","neutral"],              bg:"#111318", road:"#4a5060", water:"#1e2840" },
+  { name:"Noir",          mood:"high contrast",        tags:["dark","contrast"],             bg:"#000000", road:"#ffffff", water:"#222222" },
+  { name:"Deep Sea",      mood:"dark ocean",           tags:["dark","blue","ocean"],         bg:"#020e1c", road:"#1a4a6a", water:"#0a2a4a" },
+  { name:"Deep Purple",   mood:"royal dark",           tags:["dark","purple","rich"],        bg:"#0a0510", road:"#603090", water:"#1a0a2a" },
+  { name:"Dracula",       mood:"vampire dark",         tags:["dark","purple","pink"],        bg:"#282a36", road:"#ff79c6", water:"#6272a4" },
+  // --- Light ---
+  { name:"Parchment",     mood:"light warm",           tags:["light","warm","paper"],        bg:"#f5f0e8", road:"#8a7a6a", water:"#a0b8c8" },
+  { name:"Blueprint",     mood:"light technical",      tags:["light","blue"],                bg:"#e8f0f8", road:"#3060a0", water:"#6090c0" },
+  { name:"Ghost",         mood:"light minimal",        tags:["light","minimal"],             bg:"#f8f8f8", road:"#cccccc", water:"#b0c8d8" },
+  { name:"Cream",         mood:"light neutral",        tags:["light","warm","neutral"],      bg:"#faf6f0", road:"#c0a880", water:"#90b0c0" },
+  { name:"Nordic",        mood:"cold minimal",         tags:["light","cool","grey"],         bg:"#eceff4", road:"#4c566a", water:"#81a1c1" },
+  { name:"Moonlight",     mood:"pale silver",          tags:["light","cool","night"],        bg:"#e0e0f0", road:"#707090", water:"#a0b0d0" },
+  { name:"Champagne",     mood:"elegant light",        tags:["light","warm","luxury"],       bg:"#f7f3e9", road:"#d4c4a8", water:"#b8ccd0" },
+  { name:"Arctic",        mood:"cold ice light",       tags:["cool","blue","minimal"],       bg:"#e8f4ff", road:"#6090b0", water:"#a0c8e0" },
+  // --- Neon ---
+  { name:"Neon City",     mood:"neon vibrant",         tags:["neon","vibrant","dark"],       bg:"#0a0010", road:"#ff00ff", water:"#00ffff" },
+  { name:"Cyberpunk",     mood:"neon yellow",          tags:["neon","yellow","dark"],        bg:"#0d0d00", road:"#ffff00", water:"#00ccff" },
+  { name:"Synthwave",     mood:"retro neon pink",      tags:["neon","pink","retro"],         bg:"#0d0020", road:"#ff2080", water:"#8000ff" },
+  { name:"Electric",      mood:"neon blue",            tags:["neon","blue","vibrant"],       bg:"#000510", road:"#00aaff", water:"#0044aa" },
+  { name:"Acid",          mood:"neon green",           tags:["neon","green","dark"],         bg:"#000a00", road:"#00ff44", water:"#004422" },
+  { name:"Toxic",         mood:"high vis neon",        tags:["neon","yellow","green"],       bg:"#050a00", road:"#ccff00", water:"#224400" },
+  { name:"Mirage",        mood:"bleached sandy neon",  tags:["neon","sandy","warm"],         bg:"#0e0c04", road:"#ffe080", water:"#204050" },
+  { name:"Neon Sign",     mood:"neon on black contrast",tags:["neon","contrast","vibrant"],  bg:"#000000", road:"#ff6600", water:"#001a33" },
+  // --- Earth ---
+  { name:"Terrain",       mood:"earthy natural",       tags:["earth","natural","warm"],      bg:"#2a2010", road:"#a08040", water:"#406080" },
+  { name:"Forest",        mood:"green natural",        tags:["earth","green"],               bg:"#0a1a0a", road:"#4a7a3a", water:"#2a5a4a" },
+  { name:"Desert",        mood:"warm sandy",           tags:["earth","warm","sandy"],        bg:"#2a1a08", road:"#c8a060", water:"#608090" },
+  { name:"Autumn",        mood:"warm seasonal",        tags:["earth","warm"],                bg:"#1a0c00", road:"#c06020", water:"#204060" },
+  { name:"Savanna",       mood:"warm ochre",           tags:["earth","warm","ochre"],        bg:"#1e1608", road:"#b08040", water:"#406070" },
+  { name:"Mars",          mood:"dusty red",            tags:["earth","red","warm"],          bg:"#1a0a05", road:"#b04020", water:"#402010" },
+  { name:"Sahel",         mood:"dusty ochre",          tags:["earth","warm","ochre","sandy"],bg:"#1e1a08", road:"#b89040", water:"#3a5870" },
+  { name:"Turmeric",      mood:"vivid ochre spice",    tags:["earth","warm","ochre","vibrant"],bg:"#180e00",road:"#e8a020", water:"#1a3a50" },
+  { name:"Dune Light",    mood:"pale ochre minimal",   tags:["light","warm","ochre","sandy"],bg:"#f5edd8", road:"#c8a050", water:"#90aab8" },
+  { name:"Amber Noir",    mood:"dark ochre contrast",  tags:["dark","warm","ochre"],         bg:"#0a0800", road:"#cc8800", water:"#1a2a38" },
+  { name:"Emerald",       mood:"vibrant green",        tags:["vibrant","green"],             bg:"#001a0a", road:"#50c878", water:"#004433" },
+  // --- Mono ---
+  { name:"Silver",        mood:"mono cool",            tags:["mono","cool","grey"],          bg:"#1a1a1e", road:"#8888aa", water:"#3a3a5a" },
+  { name:"Sepia",         mood:"mono warm vintage",    tags:["mono","warm"],                 bg:"#1a1208", road:"#8a7050", water:"#3a5060" },
+  { name:"Titanium",      mood:"industrial",           tags:["mono","metal","neutral"],      bg:"#1a1a1a", road:"#a5a5a5", water:"#30353b" },
+  { name:"Old Brass",     mood:"tarnished ochre",      tags:["mono","warm","ochre"],         bg:"#141008", road:"#9a7a30", water:"#2a3a48" },
+  // --- Pastel ---
+  { name:"Rose",          mood:"pastel pink",          tags:["pastel","pink","soft"],        bg:"#fff0f4", road:"#e090a0", water:"#90b8d0" },
+  { name:"Lavender",      mood:"pastel purple",        tags:["pastel","purple","soft"],      bg:"#f4f0ff", road:"#a080c0", water:"#80a8c8" },
+  { name:"Mint",          mood:"pastel green",         tags:["pastel","green","soft"],       bg:"#f0fff8", road:"#70b890", water:"#70a8c0" },
+  { name:"Sakura",        mood:"soft floral",          tags:["pastel","pink","warm"],        bg:"#fff5f7", road:"#ffb7c5", water:"#a0d8ef" },
+  // --- Special ---
+  { name:"Infrared",      mood:"thermal red",          tags:["special","red","dark"],        bg:"#0a0000", road:"#ff4400", water:"#440000" },
+  { name:"Matrix",        mood:"green terminal",       tags:["special","green","dark"],      bg:"#000800", road:"#00cc00", water:"#003300" },
+  { name:"Gold Rush",     mood:"luxury metallic",      tags:["special","gold","warm"],       bg:"#0d0b00", road:"#d4af37", water:"#2a2510" },
+  { name:"Solarized",     mood:"technical warm",       tags:["special","warm","tech"],       bg:"#002b36", road:"#b58900", water:"#268bd2" },
+  { name:"Volcano",       mood:"magma dark",           tags:["special","red","orange"],      bg:"#0a0000", road:"#ff2200", water:"#330000" },
+  // --- Rich ---
+  { name:"Malachite",     mood:"rich deep green",      tags:["dark","green","rich"],         bg:"#001008", road:"#208050", water:"#003020" },
+  { name:"Sapphire",      mood:"rich royal blue",      tags:["dark","blue","rich"],          bg:"#000818", road:"#1040c0", water:"#0a1a40" },
+  { name:"Imperial",      mood:"rich gold purple",     tags:["dark","purple","rich","gold"], bg:"#080008", road:"#c0a000", water:"#200840" },
+  // --- Contrast ---
+  { name:"Chalkboard",    mood:"dark contrast warm",   tags:["dark","contrast","warm"],      bg:"#0a0a08", road:"#f0e8c0", water:"#1a2830" },
+  { name:"Carbon",        mood:"dark paper contrast",  tags:["dark","paper","contrast"],     bg:"#0e0e0e", road:"#e8e0d0", water:"#1e2830" },
+  // --- Paper ---
+  { name:"Newsprint",     mood:"grey paper vintage",   tags:["light","neutral","paper"],     bg:"#f0ede6", road:"#888070", water:"#8898a8" },
+  { name:"Manuscript",    mood:"aged paper warm",      tags:["light","warm","paper","mono"], bg:"#f2ead8", road:"#907850", water:"#7090a0" },
+  // --- Vibrant ---
+  { name:"Sunset",        mood:"vibrant warm",         tags:["vibrant","orange","red"],      bg:"#140a10", road:"#ff5e62", water:"#ff9966" },
 ];
-const PALETTE_TAGS = ["all","dark","light","neon","earth","mono","pastel","warm","cool","minimal","special"];
+
+const PALETTE_TAGS = [
+  "all",
+  // Brightness
+  "dark", "light",
+  // Style families
+  "neon", "pastel", "mono", "earth",
+  // Temperature
+  "warm", "cool",
+  // Aesthetic
+  "minimal", "vibrant", "retro", "special",
+  // Curated families
+  "contrast", "rich", "paper", "sandy", "ochre",
+  // Colors
+  "blue", "green", "red", "pink", "purple",
+  "yellow", "orange", "gold", "grey",
+  // Descriptors
+  "neutral", "natural", "soft", "ocean",
+  "metal", "luxury", "tech", "night",
+];
 
 /* ═══════════════════════════════════════════════════════
    FORMAT GRID
