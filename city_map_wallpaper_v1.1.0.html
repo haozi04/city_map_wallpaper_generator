@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Map Wallpaper Studio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0c10;
+      --surface:   #14141c;
+      --surface2:  #1c1c28;
+      --surface3:  #242434;
+      --accent:    #6c63ff;
+      --accent2:   #a78bfa;
+      --text:      #e8e8f0;
+      --muted:     #7878a0;
+      --border:    #2a2a3e;
+      --radius:    12px;
+      --panel:     280px;
+      --shadow:    0 8px 32px rgba(0,0,0,.5);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .6rem 1.2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .topbar-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+    .topbar-inputs {
+      display: flex;
+      gap: .5rem;
+      flex: 1;
+      max-width: 480px;
+    }
+    .topbar-inputs input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .45rem .75rem;
+      color: var(--text);
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .2s;
+      min-width: 0;
+    }
+    .topbar-inputs input:focus { border-color: var(--accent); }
+    .topbar-inputs input::placeholder { color: var(--muted); }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+      padding: .45rem 1rem;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-sm { padding: .35rem .75rem; font-size: .8rem; }
+
+    .topbar-right { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+
+    /* status pill */
+    #statusPill {
+      font-size: .78rem;
+      padding: .25rem .7rem;
+      border-radius: 20px;
+      display: none;
+      white-space: nowrap;
+    }
+    #statusPill.info  { background:#1e2a4a; color:#7eb8f7; }
+    #statusPill.error { background:#3a1a1a; color:#f78080; }
+    #statusPill.ok    { background:#1a3a2a; color:#80f7b0; }
+
+    /* ── Main layout ── */
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Left panel ── */
+    .panel {
+      width: var(--panel);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .panel::-webkit-scrollbar { width: 4px; }
+    .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .panel-section {
+      border-bottom: 1px solid var(--border);
+      padding: .9rem;
+    }
+    .panel-section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent2);
+      margin-bottom: .75rem;
+    }
+
+    /* ── Device selector ── */
+    .device-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .4rem;
+    }
+    .device-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .5rem .4rem;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .15s, background .15s;
+      color: var(--text);
+    }
+    .device-btn:hover { border-color: var(--accent); }
+    .device-btn.active {
+      border-color: var(--accent);
+      background: rgba(108,99,255,.15);
+    }
+    .device-btn .d-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .device-btn .d-name { font-size: .68rem; font-weight: 600; display: block; }
+    .device-btn .d-res  { font-size: .6rem; color: var(--muted); display: block; }
+
+    /* ── Color rows ── */
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: .5rem;
+    }
+    .color-swatch-wrap {
+      position: relative;
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,.12);
+      cursor: pointer;
+    }
+    .color-preview { position: absolute; inset: 0; pointer-events: none; }
+    .color-swatch-wrap input[type="color"] {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      opacity: 0; border: none; padding: 0; cursor: pointer;
+    }
+    .color-info { flex: 1; min-width: 0; }
+    .color-label { font-size: .78rem; font-weight: 600; color: var(--text); }
+    .color-hex-input {
+      flex-shrink: 0;
+      width: 72px !important;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: .25rem .35rem;
+      color: var(--text);
+      font-size: .75rem;
+      font-family: "SF Mono","Fira Code",monospace;
+      text-align: center;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .color-hex-input:focus { border-color: var(--accent); }
+
+    /* ── Sliders ── */
+    .slider-row { margin-bottom: .65rem; }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .3rem;
+    }
+    .slider-label { font-size: .78rem; color: var(--text); font-weight: 500; }
+    .slider-value {
+      font-size: .72rem;
+      color: var(--accent2);
+      font-family: "SF Mono","Fira Code",monospace;
+      font-weight: 700;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 3px;
+    }
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: .2rem;
+    }
+    .slider-ticks span {
+      font-size: .6rem;
+      color: var(--muted);
+      flex: 1;
+      text-align: center;
+    }
+    .slider-ticks span:first-child { text-align: left; }
+    .slider-ticks span:last-child  { text-align: right; }
+
+    /* ── Canvas area ── */
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* device frame */
+    .device-frame {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #333, var(--shadow);
+      background: #000;
+      flex-shrink: 0;
+    }
+    .device-frame canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* notch / dynamic island */
+    .frame-notch {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      z-index: 5;
+      border-radius: 0 0 12px 12px;
+    }
+
+    /* loading overlay */
+    .canvas-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .6rem;
+      border-radius: 20px;
+      z-index: 20;
+      display: none;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .overlay-text { font-size: .82rem; color: var(--muted); }
+
+    /* resolution badge */
+    .res-badge {
+      position: absolute;
+      bottom: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: .7rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Right panel ── */
+    .panel-right {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-right::-webkit-scrollbar { width: 4px; }
+    .panel-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* export section */
+    .export-section {
+      padding: .9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .export-section .panel-section-title { margin-bottom: .6rem; }
+
+    .export-info {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .6rem .75rem;
+      margin-bottom: .75rem;
+    }
+    .export-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      margin-bottom: .2rem;
+    }
+    .export-info-row:last-child { margin-bottom: 0; }
+    .export-info-row .k { color: var(--muted); }
+    .export-info-row .v { color: var(--text); font-weight: 600; font-family: "SF Mono","Fira Code",monospace; }
+
+    .btn-download {
+      width: 100%;
+      padding: .6rem;
+      font-size: .88rem;
+    }
+
+    /* width preview bars */
+    .width-preview {
+      padding: .9rem;
+    }
+    .width-preview .panel-section-title { margin-bottom: .6rem; }
+    .tier-bar-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .45rem;
+    }
+    .tier-bar-label { font-size: .65rem; color: var(--muted); width: 52px; flex-shrink: 0; text-align: right; }
+    .tier-bar-track {
+      flex: 1;
+      height: 12px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .tier-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+      transition: width .2s;
+    }
+    .tier-bar-px { font-size: .62rem; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; font-family: monospace; }
+
+    @media (max-width: 900px) {
+      .panel-right { display: none; }
+      :root { --panel: 240px; }
+    }
+    @media (max-width: 640px) {
+      .panel { width: 100%; position: absolute; bottom: 0; left: 0; right: 0;
+               height: 55vh; border-right: none; border-top: 1px solid var(--border); z-index: 20; }
+      .workspace { flex-direction: column; }
+      .canvas-area { flex: 1; }
+      .topbar-brand { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════ TOP BAR ══════════════════════ -->
+<div class="topbar">
+  <span class="topbar-brand">🗺️ Map Wallpaper Studio</span>
+  <div class="topbar-inputs">
+    <input type="text" id="city"    placeholder="City"    autocomplete="off" />
+    <input type="text" id="country" placeholder="Country" autocomplete="off" />
+  </div>
+  <button class="btn btn-primary" id="fetchBtn" onclick="fetchMap()">Load Map</button>
+  <div class="topbar-right">
+    <span id="statusPill"></span>
+  </div>
+</div>
+
+<!-- ══════════════════════ WORKSPACE ══════════════════════ -->
+<div class="workspace">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="panel">
+
+    <!-- Device -->
+    <div class="panel-section">
+      <div class="panel-section-title">📱 Target Device</div>
+      <div class="device-grid" id="deviceGrid"></div>
+    </div>
+
+    <!-- Colors -->
+    <div class="panel-section">
+      <div class="panel-section-title">🎨 Colors</div>
+
+      <div class="color-row">
+        <div class="color-swatch-wrap">
+          <div class="color-preview" id="prev-bg"></div>
+          <input type="color" id="pick-bg" value="#000000" oninput="onColorPick('bg',this.value)" />
+        </div>
+        <div class="color-info"><span class="color-label">Background</span></div>
+        <input type="text" class="color-hex-input" id="hex-bg" value="#000000" maxlength="7"
+               oninput="onHexType('bg',this.value)" onblur="onHexBlur('bg')" />
+      </div>
+
+      <div class="color-row">
+        <div class="color-swatch-wrap">
+          <div class="color-preview" id="prev-road"></div>
+          <input type="color" id="pick-road" value="#616161" oninput="onColorPick('road',this.value)" />
+        </div>
+        <div class="color-info"><span class="color-label">Roads</span></div>
+        <input type="text" class="color-hex-input" id="hex-road" value="#616161" maxlength="7"
+               oninput="onHexType('road',this.value)" onblur="onHexBlur('road')" />
+      </div>
+
+      <div class="color-row">
+        <div class="color-swatch-wrap">
+          <div class="color-preview" id="prev-water"></div>
+          <input type="color" id="pick-water" value="#424242" oninput="onColorPick('water',this.value)" />
+        </div>
+        <div class="color-info"><span class="color-label">Water</span></div>
+        <input type="text" class="color-hex-input" id="hex-water" value="#424242" maxlength="7"
+               oninput="onHexType('water',this.value)" onblur="onHexBlur('water')" />
+      </div>
+    </div>
+
+    <!-- Road density -->
+    <div class="panel-section">
+      <div class="panel-section-title">🛣️ Road Density</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Minimum tier</span>
+          <span class="slider-value" id="val-threshold">Secondary+</span>
+        </div>
+        <input type="range" id="sl-threshold" min="0" max="4" step="1" value="2"
+               oninput="onSlider('threshold',this.value)" />
+        <div class="slider-ticks">
+          <span>All</span><span>Tertiary</span><span>Secondary</span><span>Primary</span><span>Mway</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Road widths -->
+    <div class="panel-section">
+      <div class="panel-section-title">📐 Road Widths</div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Minor road width</span>
+          <span class="slider-value" id="val-minW">0.8</span>
+        </div>
+        <input type="range" id="sl-minW" min="0.2" max="2.0" step="0.1" value="0.8"
+               oninput="onSlider('minW',this.value)" />
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Major road width</span>
+          <span class="slider-value" id="val-maxW">2.2</span>
+        </div>
+        <input type="range" id="sl-maxW" min="0.5" max="5.0" step="0.1" value="2.2"
+               oninput="onSlider('maxW',this.value)" />
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Width curve</span>
+          <span class="slider-value" id="val-curve">Linear</span>
+        </div>
+        <input type="range" id="sl-curve" min="0.5" max="3.0" step="0.1" value="1.0"
+               oninput="onSlider('curve',this.value)" />
+        <div class="slider-ticks">
+          <span>Flat</span><span>Linear</span><span>Steep</span>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Global scale</span>
+          <span class="slider-value" id="val-scale">1.4×</span>
+        </div>
+        <input type="range" id="sl-scale" min="0.5" max="3.0" step="0.1" value="1.4"
+               oninput="onSlider('scale',this.value)" />
+      </div>
+    </div>
+
+    <!-- Map range -->
+    <div class="panel-section">
+      <div class="panel-section-title">🔍 Map Range</div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="slider-label">Padding</span>
+          <span class="slider-value" id="val-padding">5%</span>
+        </div>
+        <input type="range" id="sl-padding" min="0" max="30" step="1" value="5"
+               oninput="onSlider('padding',this.value)" />
+        <div class="slider-ticks">
+          <span>Tight</span><span>Normal</span><span>Wide</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel -->
+
+  <!-- ── CANVAS AREA ── -->
+  <div class="canvas-area">
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="device-frame" id="deviceFrame">
+        <div class="frame-notch" id="frameNotch"></div>
+        <canvas id="previewCanvas"></canvas>
+        <div class="canvas-overlay" id="canvasOverlay">
+          <div class="spinner"></div>
+          <span class="overlay-text" id="overlayText">Loading…</span>
+        </div>
+      </div>
+      <span class="res-badge" id="resBadge"></span>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="panel-right">
+
+    <div class="export-section">
+      <div class="panel-section-title">💾 Export</div>
+      <div class="export-info" id="exportInfo"></div>
+      <button class="btn btn-primary btn-download" id="dlBtn" onclick="downloadWallpaper()" disabled>
+        ⬇️ Download PNG
+      </button>
+    </div>
+
+    <div class="width-preview">
+      <div class="panel-section-title">📊 Width Preview</div>
+      <div id="tierBars"></div>
+    </div>
+
+  </div>
+
+</div><!-- /workspace -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DEVICES
+═══════════════════════════════════════════════════════ */
+const DEVICES = [
+  { id:"iphone15",  icon:"📱", name:"iPhone 15",     w:1179, h:2556, notch:"island", notchW:120, notchH:34, radius:50 },
+  { id:"iphone13",  icon:"📱", name:"iPhone 13",     w:1170, h:2532, notch:"notch",  notchW:150, notchH:30, radius:47 },
+  { id:"ipadpro",   icon:"⬜", name:"iPad Pro 12.9", w:2048, h:2732, notch:"none",   notchW:0,   notchH:0,  radius:18 },
+  { id:"ipadair",   icon:"⬜", name:"iPad Air",      w:1640, h:2360, notch:"none",   notchW:0,   notchH:0,  radius:18 },
+  { id:"macbook",   icon:"💻", name:"MacBook Pro",   w:3456, h:2234, notch:"none",   notchW:0,   notchH:0,  radius:10 },
+  { id:"macair",    icon:"💻", name:"MacBook Air",   w:2560, h:1664, notch:"none",   notchW:0,   notchH:0,  radius:10 },
+  { id:"win4k",     icon:"🖥️", name:"4K Monitor",   w:3840, h:2160, notch:"none",   notchW:0,   notchH:0,  radius:4  },
+  { id:"win1080",   icon:"🖥️", name:"1080p Monitor", w:1920, h:1080, notch:"none",   notchW:0,   notchH:0,  radius:4  },
+  { id:"win1440",   icon:"🖥️", name:"1440p Monitor", w:2560, h:1440, notch:"none",   notchW:0,   notchH:0,  radius:4  },
+  { id:"pixel8",    icon:"📱", name:"Pixel 8",       w:1080, h:2400, notch:"island", notchW:100, notchH:28, radius:42 },
+  { id:"s24",       icon:"📱", name:"Galaxy S24",    w:1080, h:2340, notch:"island", notchW:90,  notchH:26, radius:42 },
+];
+
+let currentDevice = DEVICES[0];
+
+/* ═══════════════════════════════════════════════════════
+   ROAD TIERS
+═══════════════════════════════════════════════════════ */
+const ROAD_TIERS = [
+  { tier:0, label:"Path/Track",  types:["track","path","footway","cycleway","steps","bridleway"] },
+  { tier:1, label:"Service",     types:["living_street","pedestrian","service"] },
+  { tier:2, label:"Residential", types:["residential","unclassified","tertiary","tertiary_link"] },
+  { tier:3, label:"Secondary",   types:["secondary","secondary_link"] },
+  { tier:4, label:"Primary",     types:["primary","primary_link"] },
+  { tier:5, label:"Trunk",       types:["trunk","trunk_link"] },
+  { tier:6, label:"Motorway",    types:["motorway","motorway_link"] },
+];
+
+const THRESHOLD_LABELS   = ["All roads","Tertiary+","Secondary+","Primary+","Motorway only"];
+const THRESHOLD_MIN_TIER = [0, 2, 3, 4, 6];
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+const colors = { bg:"#000000", road:"#616161", water:"#424242" };
+
+const params = {
+  threshold : 2,
+  minW      : 0.8,
+  maxW      : 2.2,
+  curve     : 1.0,
+  scale     : 1.4,
+  padding   : 5,
+};
+
+let osmElements = null;   // cached OSM data
+let lastBbox    = null;
+let lastCanvas  = null;
+let renderTimer = null;
+let isFetching  = false;
+
+/* ═══════════════════════════════════════════════════════
+   DEVICE GRID
+═══════════════════════════════════════════════════════ */
+function buildDeviceGrid() {
+  const grid = document.getElementById("deviceGrid");
+  grid.innerHTML = "";
+  DEVICES.forEach(dev => {
+    const btn = document.createElement("div");
+    btn.className = "device-btn" + (dev.id === currentDevice.id ? " active" : "");
+    btn.innerHTML = `<span class="d-icon">${dev.icon}</span>
+                     <span class="d-name">${dev.name}</span>
+                     <span class="d-res">${dev.w}×${dev.h}</span>`;
+    btn.onclick = () => {
+      currentDevice = dev;
+      document.querySelectorAll(".device-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyDeviceFrame();
+      scheduleRender();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   FRAME SIZING
+   Max preview height = viewport - topbar (~56px) - padding
+═══════════════════════════════════════════════════════ */
+function applyDeviceFrame() {
+  const frame  = document.getElementById("deviceFrame");
+  const notch  = document.getElementById("frameNotch");
+  const badge  = document.getElementById("resBadge");
+  const canvas = document.getElementById("previewCanvas");
+  const dev    = currentDevice;
+
+  const maxH = window.innerHeight - 56 - 80;
+  const maxW = document.querySelector(".canvas-area").clientWidth - 60;
+
+  const scaleH = maxH / dev.h;
+  const scaleW = maxW / dev.w;
+  const s = Math.min(scaleH, scaleW);
+
+  const dispW = Math.round(dev.w * s);
+  const dispH = Math.round(dev.h * s);
+
+  frame.style.width        = dispW + "px";
+  frame.style.height       = dispH + "px";
+  frame.style.borderRadius = dev.radius + "px";
+
+  canvas.width  = dev.w;
+  canvas.height = dev.h;
+
+  /* notch */
+  if (dev.notch === "notch") {
+    notch.style.display      = "block";
+    notch.style.width        = (dev.notchW * s) + "px";
+    notch.style.height       = (dev.notchH * s) + "px";
+    notch.style.borderRadius = "0 0 " + (10 * s) + "px " + (10 * s) + "px";
+  } else if (dev.notch === "island") {
+    notch.style.display      = "block";
+    notch.style.width        = (dev.notchW * s) + "px";
+    notch.style.height       = (dev.notchH * s) + "px";
+    notch.style.borderRadius = (dev.notchH * s / 2) + "px";
+  } else {
+    notch.style.display = "none";
+  }
+
+  badge.textContent = `${dev.w} × ${dev.h} px`;
+  updateExportInfo();
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT INFO
+═══════════════════════════════════════════════════════ */
+function updateExportInfo() {
+  const dev = currentDevice;
+  document.getElementById("exportInfo").innerHTML = `
+    <div class="export-info-row"><span class="k">Device</span><span class="v">${dev.name}</span></div>
+    <div class="export-info-row"><span class="k">Resolution</span><span class="v">${dev.w}×${dev.h}</span></div>
+    <div class="export-info-row"><span class="k">Format</span><span class="v">PNG</span></div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════
+   WIDTH PREVIEW BARS
+═══════════════════════════════════════════════════════ */
+function updateTierBars() {
+  const container = document.getElementById("tierBars");
+  container.innerHTML = "";
+  const minTier = THRESHOLD_MIN_TIER[params.threshold];
+  const activeTiers = ROAD_TIERS.filter(t => t.tier >= minTier);
+  if (!activeTiers.length) return;
+
+  const maxPx = computeRoadWidth(6) * (currentDevice.w / 1170) * params.scale;
+
+  activeTiers.forEach(t => {
+    const px = computeRoadWidth(t.tier) * (currentDevice.w / 1170) * params.scale;
+    const pct = Math.min(100, (px / maxPx) * 100);
+    const row = document.createElement("div");
+    row.className = "tier-bar-row";
+    row.innerHTML = `
+      <span class="tier-bar-label">${t.label}</span>
+      <div class="tier-bar-track">
+        <div class="tier-bar-fill" style="width:${pct.toFixed(1)}%"></div>
+      </div>
+      <span class="tier-bar-px">${px.toFixed(1)}px</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   ROAD WIDTH CALCULATION
+   Uses power curve so the gap between tiers is controllable
+═══════════════════════════════════════════════════════ */
+function computeRoadWidth(tier) {
+  /* normalise tier 0–6 → 0–1 */
+  const t = tier / 6;
+  /* apply curve (power) */
+  const curved = Math.pow(t, 1 / params.curve);
+  /* interpolate min → max */
+  return params.minW + (params.maxW - params.minW) * curved;
+}
+
+function roadWidthForType(hw) {
+  for (const t of ROAD_TIERS) {
+    if (t.types.includes(hw)) return computeRoadWidth(t.tier);
+  }
+  return params.minW;
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLOR HELPERS
+═══════════════════════════════════════════════════════ */
+function isValidHex(h) { return /^#[0-9a-fA-F]{6}$/.test(h); }
+
+function syncColor(key, hex) {
+  if (!isValidHex(hex)) return;
+  colors[key] = hex;
+  document.getElementById(`pick-${key}`).value            = hex;
+  document.getElementById(`prev-${key}`).style.background = hex;
+  document.getElementById(`hex-${key}`).value             = hex;
+}
+function onColorPick(key, hex) { syncColor(key, hex); scheduleRender(); }
+function onHexType(key, raw) {
+  const v = raw.startsWith("#") ? raw : "#" + raw;
+  if (isValidHex(v)) {
+    colors[key] = v;
+    document.getElementById(`pick-${key}`).value            = v;
+    document.getElementById(`prev-${key}`).style.background = v;
+    scheduleRender();
+  }
+}
+function onHexBlur(key) {
+  let v = document.getElementById(`hex-${key}`).value.trim();
+  if (!v.startsWith("#")) v = "#" + v;
+  if (isValidHex(v)) syncColor(key, v);
+  else document.getElementById(`hex-${key}`).value = colors[key];
+}
+["bg","road","water"].forEach(k => syncColor(k, colors[k]));
+
+/* ═══════════════════════════════════════════════════════
+   SLIDER HELPERS
+═══════════════════════════════════════════════════════ */
+const SLIDER_FMT = {
+  threshold : v => THRESHOLD_LABELS[v],
+  minW      : v => parseFloat(v).toFixed(1),
+  maxW      : v => parseFloat(v).toFixed(1),
+  curve     : v => {
+    const n = parseFloat(v);
+    if (n < 0.8) return "Flat";
+    if (n < 1.2) return "Linear";
+    if (n < 2.0) return "Curved";
+    return "Steep";
+  },
+  scale   : v => parseFloat(v).toFixed(1) + "×",
+  padding : v => v + "%",
+};
+
+function onSlider(key, val) {
+  params[key] = parseFloat(val);
+  document.getElementById(`val-${key}`).textContent = SLIDER_FMT[key](val);
+  updateTierBars();
+  scheduleRender();
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATUS
+═══════════════════════════════════════════════════════ */
+function setStatus(msg, type="info") {
+  const el = document.getElementById("statusPill");
+  el.textContent = msg; el.className = type; el.style.display = "block";
+}
+function clearStatus() { document.getElementById("statusPill").style.display = "none"; }
+
+function showOverlay(msg) {
+  const ov = document.getElementById("canvasOverlay");
+  document.getElementById("overlayText").textContent = msg;
+  ov.style.display = "flex";
+}
+function hideOverlay() {
+  document.getElementById("canvasOverlay").style.display = "none";
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROJECTION
+═══════════════════════════════════════════════════════ */
+function lon2x(lon, west, east, W) {
+  return ((lon - west) / (east - west)) * W;
+}
+function lat2y(lat, south, north, H) {
+  const R = Math.PI / 180;
+  const merc = v => Math.log(Math.tan(Math.PI/4 + v*R/2));
+  return H - ((merc(lat) - merc(south)) / (merc(north) - merc(south))) * H;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GEOCODE
+═══════════════════════════════════════════════════════ */
+async function geocodeCity(city, country) {
+  const url = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+    city, country, format:"json", limit:1,
+    addressdetails:1, "accept-language":"en",
+  });
+  const res = await fetch(url, { headers:{"Accept-Language":"en"} });
+  if (!res.ok) throw new Error("Nominatim request failed");
+  const data = await res.json();
+  if (!data.length) throw new Error(`"${city}, ${country}" not found`);
+  return data[0];
+}
+
+/* ═══════════════════════════════════════════════════════
+   BBOX
+═══════════════════════════════════════════════════════ */
+function computeBbox(place) {
+  let [south, north, west, east] = place.boundingbox.map(Number);
+  const pad = params.padding / 100;
+  const latPad = (north - south) * pad;
+  const lonPad = (east  - west)  * pad;
+  south -= latPad; north += latPad;
+  west  -= lonPad; east  += lonPad;
+
+  const dev         = currentDevice;
+  const targetRatio = dev.h / dev.w;
+  const midLat      = (north + south) / 2;
+  const lonPerLat   = Math.cos(midLat * Math.PI / 180);
+  const latSpan     = north - south;
+  const lonSpan     = east  - west;
+  const curRatio    = (latSpan / lonSpan) / lonPerLat;
+
+  if (curRatio < targetRatio) {
+    const extra = ((lonSpan * lonPerLat * targetRatio) - latSpan) / 2;
+    south -= extra; north += extra;
+  } else {
+    const extra = ((latSpan / lonPerLat / targetRatio) - lonSpan) / 2;
+    west -= extra; east += extra;
+  }
+  return [south, west, north, east];
+}
+
+/* ═══════════════════════════════════════════════════════
+   OVERPASS FETCH
+═══════════════════════════════════════════════════════ */
+function allowedRoadTypes() {
+  const minTier = THRESHOLD_MIN_TIER[params.threshold];
+  return ROAD_TIERS.filter(t => t.tier >= minTier).flatMap(t => t.types);
+}
+
+async function fetchOSM(bbox) {
+  const [south, west, north, east] = bbox;
+  const b = `${south},${west},${north},${east}`;
+  /* fetch ALL road tiers so cached data survives threshold changes */
+  const allTypes = ROAD_TIERS.flatMap(t => t.types);
+  const roadUnion = allTypes.map(r => `  way["highway"="${r}"](${b});`).join("\n");
+
+  const query = `
+[out:json][timeout:90];
+(
+${roadUnion}
+  way["waterway"](${b});
+  way["natural"="water"](${b});
+  way["landuse"="reservoir"](${b});
+  way["landuse"="basin"](${b});
+);
+out body;
+>;
+out skel qt;
+`;
+  const res = await fetch("https://overpass-api.de/api/interpreter", {
+    method:"POST",
+    body:"data=" + encodeURIComponent(query),
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},
+  });
+  if (!res.ok) throw new Error("Overpass API request failed");
+  return res.json();
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER  (uses cached osmElements — instant)
+═══════════════════════════════════════════════════════ */
+function renderMap() {
+  if (!osmElements || !lastBbox) return;
+
+  const canvas = document.getElementById("previewCanvas");
+  const dev    = currentDevice;
+  canvas.width  = dev.w;
+  canvas.height = dev.h;
+
+  const [south, west, north, east] = lastBbox;
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  /* node lookup */
+  const nodes = {};
+  for (const el of osmElements)
+    if (el.type === "node") nodes[el.id] = el;
+
+  const allowed    = new Set(allowedRoadTypes());
+  const roads      = [];
+  const waterLines = [];
+  const waterPolys = [];
+
+  for (const el of osmElements) {
+    if (el.type !== "way" || !el.nodes?.length) continue;
+    const tags = el.tags || {};
+    if (tags.highway && allowed.has(tags.highway)) {
+      roads.push(el);
+    } else if (
+      tags.waterway ||
+      tags.natural === "water" ||
+      tags.landuse === "reservoir" ||
+      tags.landuse === "basin"
+    ) {
+      const closed = el.nodes[0] === el.nodes[el.nodes.length - 1];
+      if (closed && (tags.natural === "water" ||
+                     tags.landuse === "reservoir" ||
+                     tags.landuse === "basin")) {
+        waterPolys.push(el);
+      } else {
+        waterLines.push(el);
+      }
+    }
+  }
+
+  const pxScale = W / 1170;   /* normalise widths to reference width */
+
+  function buildPath(nodeIds) {
+    ctx.beginPath();
+    let first = true;
+    for (const nid of nodeIds) {
+      const n = nodes[nid];
+      if (!n) continue;
+      const x = lon2x(n.lon, west, east, W);
+      const y = lat2y(n.lat, south, north, H);
+      first ? (ctx.moveTo(x, y), first = false) : ctx.lineTo(x, y);
+    }
+  }
+
+  /* water polygons */
+  ctx.fillStyle = colors.water;
+  for (const way of waterPolys) {
+    buildPath(way.nodes); ctx.closePath(); ctx.fill();
+  }
+
+  /* water lines */
+  const wLineW = { river:1.8, canal:1.5, stream:1.0, drain:0.7, ditch:0.5 };
+  ctx.strokeStyle = colors.water;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const way of waterLines) {
+    const wt = (way.tags || {}).waterway || "stream";
+    ctx.lineWidth = (wLineW[wt] || 0.7) * pxScale * params.scale;
+    buildPath(way.nodes); ctx.stroke();
+  }
+
+  /* roads — least important tier first */
+  const drawOrder = ROAD_TIERS.flatMap(t => t.types).filter(r => allowed.has(r));
+  const roadGroups = {};
+  for (const way of roads) {
+    const hw = (way.tags || {}).highway;
+    if (!roadGroups[hw]) roadGroups[hw] = [];
+    roadGroups[hw].push(way);
+  }
+
+  ctx.strokeStyle = colors.road;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+
+  for (const hw of drawOrder) {
+    if (!roadGroups[hw]) continue;
+    ctx.lineWidth = roadWidthForType(hw) * pxScale * params.scale;
+    for (const way of roadGroups[hw]) { buildPath(way.nodes); ctx.stroke(); }
+  }
+
+  lastCanvas = canvas;
+  document.getElementById("dlBtn").disabled = false;
+  updateTierBars();
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCHEDULED RENDER  (debounced — 60 ms)
+═══════════════════════════════════════════════════════ */
+function scheduleRender() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => {
+    if (osmElements) renderMap();
+  }, 60);
+}
+
+/* ═══════════════════════════════════════════════════════
+   FETCH MAP  (geocode + OSM download)
+═══════════════════════════════════════════════════════ */
+async function fetchMap() {
+  if (isFetching) return;
+  const city    = document.getElementById("city").value.trim();
+  const country = document.getElementById("country").value.trim();
+  if (!city || !country) {
+    setStatus("⚠️ Enter city and country", "error"); return;
+  }
+
+  isFetching = true;
+  osmElements = null;
+  lastCanvas  = null;
+  document.getElementById("dlBtn").disabled = true;
+  document.getElementById("fetchBtn").disabled = true;
+  showOverlay("Locating city…");
+  setStatus("🔍 Geocoding…", "info");
+
+  try {
+    const place = await geocodeCity(city, country);
+    lastBbox = computeBbox(place);
+
+    showOverlay("Fetching map data…");
+    setStatus("📦 Downloading OSM data…", "info");
+
+    const data = await fetchOSM(lastBbox);
+    osmElements = data.elements;
+
+    showOverlay("Rendering…");
+    setStatus("🎨 Rendering…", "info");
+
+    /* slight delay so overlay text is visible */
+    await new Promise(r => setTimeout(r, 30));
+    renderMap();
+    hideOverlay();
+    clearStatus();
+    setStatus(`✅ ${city}, ${country}`, "ok");
+
+  } catch (err) {
+    hideOverlay();
+    setStatus("❌ " + err.message, "error");
+    console.error(err);
+  } finally {
+    isFetching = false;
+    document.getElementById("fetchBtn").disabled = false;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   DOWNLOAD
+═══════════════════════════════════════════════════════ */
+function downloadWallpaper() {
+  if (!lastCanvas) return;
+
+  /* render fresh full-res offscreen copy */
+  const off = document.createElement("canvas");
+  off.width  = currentDevice.w;
+  off.height = currentDevice.h;
+
+  /* temporarily point lastCanvas to off so renderMap writes there */
+  const saved = document.getElementById("previewCanvas");
+  const ctx   = off.getContext("2d");
+  ctx.drawImage(saved, 0, 0);   /* copy current preview at native res */
+
+  const city    = document.getElementById("city").value.trim().replace(/\s+/g,"_");
+  const country = document.getElementById("country").value.trim().replace(/\s+/g,"_");
+  const a = document.createElement("a");
+  a.download = `wallpaper_${currentDevice.id}_${city}_${country}.png`;
+  a.href = off.toDataURL("image/png");
+  a.click();
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+buildDeviceGrid();
+applyDeviceFrame();
+updateExportInfo();
+updateTierBars();
+
+/* re-fit frame on resize */
+window.addEventListener("resize", () => { applyDeviceFrame(); scheduleRender(); });
+
+/* Enter key on city/country triggers fetch */
+["city","country"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", e => {
+    if (e.key === "Enter") fetchMap();
+  });
+});
+
+/* init slider labels */
+Object.keys(SLIDER_FMT).forEach(k => {
+  const sl = document.getElementById(`sl-${k}`);
+  if (sl) document.getElementById(`val-${k}`).textContent = SLIDER_FMT[k](sl.value);
+});
+</script>
+</body>
+</html>
